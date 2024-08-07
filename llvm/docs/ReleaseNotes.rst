@@ -56,6 +56,8 @@ Changes to the LLVM IR
 
 * Added ``usub_cond`` and ``usub_sat`` operations to ``atomicrmw``.
 
+* Introduced `noalias.addrspace` metadata.
+
 Changes to LLVM infrastructure
 ------------------------------
 
