@@ -381,8 +381,8 @@ parent operation, with a nested `omp.loop_nest` wrapped by `omp.distribute` and
 
 This approach works because `parallel` is a parallelism-generating construct,
 whereas `distribute` is a worksharing construct impacting the higher level
-`teams`, making the ordering between these constructs not cause semantic
-mismatches. This property is also exploited by LLVM's SPMD-mode.
+`teams` construct, making the ordering between these constructs not cause
+semantic mismatches. This property is also exploited by LLVM's SPMD-mode.
 
 ```mlir
 omp.parallel ... {
