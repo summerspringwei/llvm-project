@@ -354,7 +354,7 @@ added in the future:
     not be used lightly but only for specific situations such as an
     alternative to the *register pinning* performance technique often
     used when implementing functional programming languages. At the
-    moment only X86, AArch64, and RISCV support this convention. The 
+    moment only X86, AArch64, and RISCV support this convention. The
     following limitations exist:
 
     -  On *X86-32* only up to 4 bit type parameters are supported. No
@@ -8048,7 +8048,7 @@ Example:
     %alloca.cast = addrspacecast ptr addrspace(5) %alloca to ptr
     %rmw.ub = atomicrmw and ptr %alloca.cast, i64 %value seq_cst, !noalias.addrspace !0
 
-    !0 = !{i32 5, i32 6}
+    !0 = !{i32 5, i32 6} ; Exclude addrspace(5) only
 
 
 This is intended for use on targets with a notion of generic address
