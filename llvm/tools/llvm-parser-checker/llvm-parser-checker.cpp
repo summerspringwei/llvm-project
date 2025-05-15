@@ -106,6 +106,17 @@ static bool hasStructTypeArgument(const Function &F) {
   return false; // No struct type arguments found
 }
 
+/// Checks if the module contains any defined struct types.
+static bool hasDefinedStructTypes(const Module &M) {
+  for (const Type *Ty : M.getIdentifiedStructTypes()) {
+    if (!cast<StructType>(Ty)->isOpaque()) {
+      return true; // Found a defined struct type
+    }
+  }
+  return false; // No defined struct types found
+}
+
+
 /// Checks if the module contains any global variables.
 static bool hasGlobalVariables(const Module &M) {
   for (const GlobalVariable &GV : M.globals()) {
@@ -159,10 +170,9 @@ std::string GetFunctionInfoJson(const Function &F) {
 
   std::stringstream OS;
   OS << "{";
-
-  OS << "\"" << F.getName().str() << "\": ";
+  OS << "\"name\": \"" << F.getName().str() << "\",";
   // 1. Get unused arguments
-  OS << "{\"unused_args\": ";
+  OS << "\"unused_args\": ";
   auto Unused = getUnusedArgIndices(F);
   if (Unused.size() == 1 && Unused[0] == -1) {
     OS << "[]"; // All arguments used
@@ -186,8 +196,8 @@ std::string GetFunctionInfoJson(const Function &F) {
     OS << "\"" << CalledFunctions[i] << "\"";
   }
   OS << "]"; // End of called functions
-
-  OS << "}"; // End of function info
+  // 5. Check for defined struct types
+  OS << ", \"has_defined_structs\": " << (hasDefinedStructTypes(*(F.getParent())) ? "true" : "false");
   OS << "}"; // End of function
   return OS.str();
 }
@@ -230,3 +240,12 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+/*
+cmake -G "Ninja" ../llvm \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_C_COMPILER=gcc \
+  -DCMAKE_CXX_COMPILER=g++ \
+  -DLLVM_ENABLE_PROJECTS="clang" \
+  -DLLVM_TARGETS_TO_BUILD="X86" \
+
+*/
