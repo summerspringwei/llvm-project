@@ -30,6 +30,9 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include "llvm/IR/Dominators.h"
+#include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Passes/PassBuilder.h"
 
 // cmake -S llvm -B mybuilddir -G Ninja -DCMAKE_BUILD_TYPE=Debug -DLLVM_PARALLEL_JOBS=40
 using namespace llvm;
@@ -47,7 +50,7 @@ static std::unique_ptr<Module> readModule(LLVMContext &Context,
 
 
 /// Returns a vector of 0‐based argument indices that are never used
-/// in F’s body.  If every argument is used, returns a single element {-1}.
+/// in F's body.  If every argument is used, returns a single element {-1}.
 static std::vector<int> getUnusedArgIndices(const Function &F) {
   std::vector<int> Unused;
   int Idx = 0;
@@ -163,6 +166,29 @@ static std::vector<std::string> getCalledFunctions(const Function &F) {
 
   return CalledFunctions;
 }
+/// Checks if the function contains any loops.
+// static bool hasLoops(const Function &F) {
+//   DominatorTree DT(const_cast<Function &>(F));
+//   LoopInfo LI(DT);
+//   return !LI.empty();
+// }
+
+static int getNumLoops(const Function &F) {
+  FunctionAnalysisManager FAM;
+  PassBuilder PB;
+  PB.registerFunctionAnalyses(FAM);
+  FAM.registerPass([] { return LoopAnalysis(); });
+  auto &LI = FAM.getResult<LoopAnalysis>(const_cast<Function&>(F));
+  int numLoops = 0;
+  if(LI.empty())
+    return 0;
+  else{
+    for(Loop *L : LI){
+      numLoops++;
+    }
+  }
+  return numLoops;
+}
 
 
 // Main function to return JSON-like string using stringstream
@@ -198,6 +224,8 @@ std::string GetFunctionInfoJson(const Function &F) {
   OS << "]"; // End of called functions
   // 5. Check for defined struct types
   OS << ", \"has_defined_structs\": " << (hasDefinedStructTypes(*(F.getParent())) ? "true" : "false");
+  // 6. Get number of loops
+  OS << ", \"num_loops\": " << getNumLoops(F);
   OS << "}"; // End of function
   return OS.str();
 }
